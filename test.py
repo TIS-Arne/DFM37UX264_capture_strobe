@@ -44,12 +44,11 @@ def start_gstreamer(trip_path):
         "tcamsrc name=bin"
         " ! video/x-bayer,width=2048,height=2048,framerate=15/1"
         " ! imgproc"
-        " ! fakesink")
-        # " ! queue leaky=2 max-size-buffers=16"
-        # " ! bayer2rgb"
-        # " ! queue"
-        # " ! videoconvert"
-        # " ! xvimagesink sync=false")
+        " ! queue leaky=2 max-size-buffers=16"
+        " ! bayer2rgb"
+        " ! queue"
+        " ! videoconvert"
+        " ! xvimagesink sync=false")
         # " ! queue"
         # " ! nvv4l2h265enc control-rate=1 bitrate=8000000 iframeinterval=10"
         # " ! video/x-h265, stream-format=(string)byte-stream"
