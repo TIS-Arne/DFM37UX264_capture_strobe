@@ -52,7 +52,7 @@ class ImgProc(GstBase.BaseTransform):
         try:
             pri = os.sched_get_priority_max(os.SCHED_RR)
             sched = os.sched_param(pri)
-            os.sched_setscheduler(0, os.SCHED_FIFO, os.sched_param(sched))
+            os.sched_setscheduler(0, os.SCHED_FIFO, sched)
         except PermissionError as e:
             print("Could not change to realtime scheduler. Check permissions.")
 
