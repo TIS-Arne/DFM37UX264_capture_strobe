@@ -3,6 +3,8 @@ import gi
 from PIL import Image, ImageDraw, ImageFont
 import Jetson.GPIO as GPIO
 import os
+import threadsched
+
 
 gi.require_version('Gst', '1.0')
 gi.require_version('GstBase', '1.0')
@@ -47,19 +49,19 @@ class ImgProc(GstBase.BaseTransform):
         channel = 16
         GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_OFF)
         GPIO.add_event_detect(channel, GPIO.FALLING, callback=self.gpio_event)
-        # Manually call it once since exceptions won't be shown later
-        self.gpio_event(channel)
-        try:
-            pri = os.sched_get_priority_max(os.SCHED_RR)
-            sched = os.sched_param(pri)
-            os.sched_setscheduler(0, os.SCHED_FIFO, sched)
-        except PermissionError as e:
-            print("Could not change to realtime scheduler. Check permissions.")
+
 
     def __del__(self):
         GPIO.cleanup()
 
+
     def gpio_event(self, channel):
+        policy, prio = threadsched.get_curschedparam()
+        if policy != threadsched.SCHED_RR:
+            ret = threadsched.set_curschedparam(threadsched.SCHED_RR, 10)
+            if ret == 0:
+                print("gpio: moved to RT scheduler")
+
         clock = self.get_clock()
         # The clock will only be present after the stream got started,
         # but GPIO events will come all the time
@@ -71,6 +73,12 @@ class ImgProc(GstBase.BaseTransform):
 
 
     def do_transform_ip(self, buf: Gst.Buffer) -> Gst.FlowReturn:
+        policy, prio = threadsched.get_curschedparam()
+        if policy != threadsched.SCHED_RR:
+            ret = threadsched.set_curschedparam(threadsched.SCHED_RR, 10)
+            if ret == 0:
+                print("gstreamer: moved to RT scheduler")
+
         ts = self.base_time + buf.pts
         dt = ts - self.last_buf_ts
         self.last_buf_ts = ts
