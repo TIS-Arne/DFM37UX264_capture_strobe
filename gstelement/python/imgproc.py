@@ -67,14 +67,14 @@ class ImgProc(GstBase.BaseTransform):
             ts = clock.get_time()
             dt = ts - self.last_gpio_ts
             self.last_gpio_ts = ts
-            print("gpio: ", str(ts), "\tdt:", dt)
+            print("gpio:", Gst.TIME_ARGS(ts), "dt:", Gst.TIME_ARGS(dt))
 
 
     def do_transform_ip(self, buf: Gst.Buffer) -> Gst.FlowReturn:
         ts = self.base_time + buf.pts
         dt = ts - self.last_buf_ts
         self.last_buf_ts = ts
-        print("buf : ", str(ts), "\tdt:", dt)
+        print("buf :", Gst.TIME_ARGS(ts), "dt:", Gst.TIME_ARGS(dt))
 
         return Gst.FlowReturn.OK
 
