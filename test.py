@@ -33,6 +33,8 @@ def start_gstreamer(trip_path):
     # Set properties
     camera.set_tcam_property("GPOut", 0)
     camera.set_tcam_property("Strobe Enable", True)
+    camera.set_tcam_property("Exposure Auto", False)
+    camera.set_tcam_property("Exposure Time (us)", 10000)
 
     # cleanup, reset state
 
@@ -42,9 +44,18 @@ def start_gstreamer(trip_path):
         "tcamsrc name=bin"
         " ! video/x-bayer,width=2048,height=2048,framerate=15/1"
         " ! imgproc"
-        " ! queue"
-        " ! fakesink" )
-        # " ! queue leaky=2"
+        " ! fakesink")
+        # " ! queue leaky=2 max-size-buffers=16"
+        # " ! bayer2rgb"
+        # " ! queue"
+        # " ! videoconvert"
+        # " ! xvimagesink sync=false")
+        # " ! queue"
+        # " ! nvv4l2h265enc control-rate=1 bitrate=8000000 iframeinterval=10"
+        # " ! video/x-h265, stream-format=(string)byte-stream"
+        # " ! h265parse"
+        # " ! queue"
+        # " ! splitmuxsink name=fsink max-size-time=60000000000")
         # " ! tee name=t"
         # " ! bayer2rgb"
         # " ! videoconvert"
@@ -54,15 +65,12 @@ def start_gstreamer(trip_path):
         # "! queue"
         # "! appsink name=asink")
 
-        # " ! nvv4l2h265enc control-rate=1 bitrate=8000000 iframeinterval=10"
-        # " ! video/x-h265, stream-format=(string)byte-stream"
-        # " ! h265parse"
-        # " ! splitmuxsink name=fsink max-size-time=60000000000"
 
     file_location = os.path.join(trip_path, 'video-%02d.mp4')
 
-    # fsink = pipeline.get_by_name("fsink")
-    # fsink.set_property("location", file_location)
+    fsink = pipeline.get_by_name("fsink")
+    if fsink:
+        fsink.set_property("location", file_location)
 
 
     clock = pipeline.get_pipeline_clock()
